@@ -43,12 +43,12 @@ const AnonymousChat: React.FC = () => {
 
             let token = localStorage.getItem('chatToken');
             if (token === null) {
-                const newToken = await axios.post('http://localhost:3000/api/chat/session')
+                const newToken = await axios.post('http://localhost:3000/session')
                 localStorage.setItem('chatToken', newToken.data.token);
             }
             token = localStorage.getItem('chatToken');
             
-            const response = await axios.post('http://localhost:3000/api/chat/chat', 
+            const response = await axios.post('http://localhost:3000/chat', 
                 {
                     "message": newMessage,
                     "token": token
