@@ -33,3 +33,5 @@ jobs:
           branch: deploy
           folder: dist
           clean: true
+        env:
+          PERSONAL_TOKEN: ${{ secrets.ACTIONS_DEPLOY_KEY }}
