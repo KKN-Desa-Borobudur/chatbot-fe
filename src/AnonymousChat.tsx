@@ -11,14 +11,7 @@ interface Message {
 
 const AnonymousChat: React.FC = () => {
     const [newMessage, setNewMessage] = useState('');
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            text: 'Selamat datang di Borobudur! Say hello buat chattingan sama gweh, Borobuguide',
-            timestamp: new Date(),
-            isOwn: false
-        }
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -29,6 +22,49 @@ const AnonymousChat: React.FC = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        const initChat = async () => {
+            let token = localStorage.getItem('chatToken');
+
+            if (!token) {
+                try {
+                    const res = await axios.post('http://ceritaborobudur.my.id/api/chat/session');
+                    token = res.data.token;
+                    if (token !== null) {
+                        localStorage.setItem('chatToken', token);
+                    }
+                } catch (err) {
+                    console.error('Error creating chat session:', err);
+                    return;
+                }
+            }
+
+            try {
+                const res = await axios.get('http://ceritaborobudur.my.id/api/chat/history', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const history = res.data.history.map((msg: any) => {
+                    console.log(msg);
+                    return {
+                        id: (msg.sentAt * 1000 + (msg.role === "user" ? 1:2)).toString(),
+                        text: msg.content,
+                        timestamp: new Date(msg.sentAt * 1000),
+                        isOwn: msg.role === "user"
+                    }
+                });
+                setMessages(history);
+                console.log('Chat history loaded:', history);
+            } catch (err) {
+                console.error('Error fetching chat history:', err);
+            }
+
+            scrollToBottom();
+        };
+
+        initChat();
+    }, []);
+
 
     const handleSendMessage = async () => {
         if (newMessage.trim()) {
@@ -47,11 +83,13 @@ const AnonymousChat: React.FC = () => {
                 localStorage.setItem('chatToken', newToken.data.token);
             }
             token = localStorage.getItem('chatToken');
-            
-            const response = await axios.post('http://ceritaborobudur.my.id/api/chat/chat', 
+
+            const response = await axios.post('http://ceritaborobudur.my.id/api/chat/chat',
                 {
-                    "message": newMessage,
-                    "token": token
+                    "message": newMessage
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
                 }
             )
 
@@ -99,8 +137,8 @@ const AnonymousChat: React.FC = () => {
                             className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
                         >
                             <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${message.isOwn
-                                    ? 'bg-[#5354A6] text-white rounded-br-md'
-                                    : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md'
+                                ? 'bg-[#5354A6] text-white rounded-br-md'
+                                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md'
                                 }`}>
                                 <p className="text-sm leading-relaxed">{message.text}</p>
                                 <p className={`text-xs mt-2 ${message.isOwn ? 'text-white/70' : 'text-gray-500'
@@ -132,8 +170,8 @@ const AnonymousChat: React.FC = () => {
                         onClick={handleSendMessage}
                         disabled={!newMessage.trim()}
                         className={`p-3 rounded-full transition-all duration-200 ${newMessage.trim()
-                                ? 'bg-[#5354A6] hover:bg-[#4A4B96] text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            ? 'bg-[#5354A6] hover:bg-[#4A4B96] text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
                     >
                         <Send size={20} />
