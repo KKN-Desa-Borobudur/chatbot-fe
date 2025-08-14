@@ -140,7 +140,7 @@ const AnonymousChat: React.FC = () => {
                                 ? 'bg-[#5354A6] text-white rounded-br-md'
                                 : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md'
                                 }`}>
-                                <p className="text-sm leading-relaxed">{message.text}</p>
+                                <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{__html: message.text}}/>
                                 <p className={`text-xs mt-2 ${message.isOwn ? 'text-white/70' : 'text-gray-500'
                                     }`}>
                                     {formatTime(message.timestamp)}
