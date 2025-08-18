@@ -27,17 +27,15 @@ const AnonymousChat: React.FC = () => {
         const initChat = async () => {
             let token = localStorage.getItem('chatToken');
 
-            if (!token) {
-                try {
-                    const res = await axios.post('http://ceritaborobudur.my.id/api/chat/session');
-                    token = res.data.token;
-                    if (token !== null) {
-                        localStorage.setItem('chatToken', token);
-                    }
-                } catch (err) {
-                    console.error('Error creating chat session:', err);
-                    return;
+            try {
+                const res = await axios.post('http://ceritaborobudur.my.id/api/chat/session', {}, {headers: { Authorization: `Bearer ${token}` } });
+                token = res.data.token;
+                if (token !== null) {
+                    localStorage.setItem('chatToken', token);
                 }
+            } catch (err) {
+                console.error('Error creating chat session:', err);
+                return;
             }
 
             try {
@@ -78,11 +76,6 @@ const AnonymousChat: React.FC = () => {
             setNewMessage('');
 
             let token = localStorage.getItem('chatToken');
-            if (token === null) {
-                const newToken = await axios.post('http://ceritaborobudur.my.id/api/chat/session')
-                localStorage.setItem('chatToken', newToken.data.token);
-            }
-            token = localStorage.getItem('chatToken');
 
             const response = await axios.post('http://ceritaborobudur.my.id/api/chat/chat',
                 {
